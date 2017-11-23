@@ -8,16 +8,44 @@
 
 import UIKit
 
-class ViewController: UITableViewController {
-    
-    
+class ViewController: UITableViewController, ContactsCellProtocol {
     let cellId = "cellId"
     
+    func touchFavoriteMark(cell: ContactsCell) {
+        print("Inside of VewController now")
+        
+        // we're going to figure out wicht name we're clicking on
+        
+        
+        guard let indexPathTapped = tableView.indexPath(for: cell) else {
+            return
+        }
+        
+        let contact = twoDimensionArray[indexPathTapped.section].names[indexPathTapped.row]
+        
+        let hasFavorited = contact.hasFavorited
+        
+        twoDimensionArray[indexPathTapped.section].names[indexPathTapped.row].hasFavorited = !hasFavorited
+        
+        tableView.reloadRows(at: [indexPathTapped], with: .fade)
+        
+    }
+    
     var twoDimensionArray = [
-        ExpandableNames(isExpanded: true, names: ["Any", "Bill", "Zack", "Steve", "Jack", "Jill", "Mary"]),
-        ExpandableNames(isExpanded: true, names: ["Carl", "Chris", "Christine", "Cameron"]),
-        ExpandableNames(isExpanded: true, names: ["David", "Dan"]),
-        ExpandableNames(isExpanded: true, names: ["Patrick", "Patty"])
+        ExpandableNames(isExpanded: true, names: ["Any", "Bill", "Zack", "Steve", "Jack", "Jill", "Mary"]
+            .map { Contact(name: $0, hasFavorited: false) }
+        ),
+        ExpandableNames(isExpanded: true, names: ["Carl", "Chris", "Christine", "Cameron"]
+            .map { Contact(name: $0, hasFavorited: false) }
+        ),
+        ExpandableNames(isExpanded: true, names: ["David", "Dan"]
+            .map { Contact(name: $0, hasFavorited: false) }
+        ),
+        ExpandableNames(isExpanded: true, names: [
+            Contact(name: "Patrick", hasFavorited: false),
+            Contact(name: "Patty", hasFavorited: false)
+            ]
+        )
     ]
     
     var showIndexPath = false
@@ -57,7 +85,7 @@ class ViewController: UITableViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Show IndexPath", style: .plain, target: self, action: #selector(handleShowIndexPath))
         
         navigationItem.title = "Contacts"
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellId)
+        tableView.register(ContactsCell.self, forCellReuseIdentifier: cellId)
     }
     
     
@@ -132,18 +160,22 @@ class ViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! ContactsCell
         
         
         //        let name = self.names[indexPath.row]
         
-        let name = twoDimensionArray[indexPath.section].names[indexPath.row]
+        let contact = twoDimensionArray[indexPath.section].names[indexPath.row]
         
-        cell.textLabel?.text = name
+        cell.textLabel?.text = contact.name
+        
+        cell.accessoryView?.tintColor = contact.hasFavorited ? UIColor.red : .lightGray
         
         if(showIndexPath){
-            cell.textLabel?.text = "\(name) Sections: \(indexPath.section) Row: \(indexPath.row)"
+            cell.textLabel?.text = "\(contact.name) Sections: \(indexPath.section) Row: \(indexPath.row)"
         }
+        
+        cell.delegate = self
         
         return cell
         
